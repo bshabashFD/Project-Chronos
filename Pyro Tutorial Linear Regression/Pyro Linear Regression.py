@@ -136,7 +136,7 @@ for i, col in enumerate(california.feature_names):
 
 
 # TO DELETE
-new_measurements = pd.Series({"model": "LR", 
+new_measurements = pd.Series({"model": "Linear Regression", 
                               "measurement": "time", 
                               "censored": True,
                               "value": round(end_time -  start_time, 2)})
@@ -220,7 +220,7 @@ plot_uncensored_observations(y_test, y_pred, y_censor_label, "02_uncensored_LR")
 # TO DELETE
 y_pred_censored = np.where(y_pred > y_censor_label, y_censor_label, y_pred)
 
-new_measurements = pd.Series({"model": "LR", 
+new_measurements = pd.Series({"model": "Linear Regression", 
                               "measurement": "R^2", 
                               "censored": True,
                               "value": r2_score(y_test, y_pred_censored)})
@@ -237,7 +237,7 @@ y_test_uncensored = y_test[y_test<y_censor_label]
 y_pred_uncensored = y_pred[y_test<y_censor_label]
 
 
-new_measurements = pd.Series({"model": "LR", 
+new_measurements = pd.Series({"model": "Linear Regression", 
                               "measurement": "R^2", 
                               "censored": False,
                               "value": r2_score(y_test_uncensored, y_pred_uncensored)})
@@ -1166,140 +1166,3 @@ print(super_results)
 
 
 super_results.to_csv('experimental_measurement.csv', index=False)
-
-
-# In[68]:
-
-
-R2_df = super_results[super_results['measurement'] == "R^2"]
-grouped_R2_df = R2_df.groupby(['model', 'measurement', 'censored']).agg(['mean', 'std']).reset_index()
-print(grouped_R2_df)
-
-
-# In[69]:
-
-
-censored_grouped_df = grouped_R2_df[grouped_R2_df['censored'] == True].sort_values(by=('value', 'mean'))
-uncensored_grouped_df = grouped_R2_df[grouped_R2_df['censored'] == False]
-
-
-# In[70]:
-
-
-import plotly.graph_objects as go
-models = censored_grouped_df['model']
-
-fig = go.Figure(data=[
-    go.Bar(name='Full Dataset', 
-           x=censored_grouped_df['model'], 
-           y=np.round(censored_grouped_df['value']['mean'], 2), 
-           error_y={"array":np.round(censored_grouped_df['value']['std'], 2)}),
-    go.Bar(name='Uncensored Dataset', 
-           x=uncensored_grouped_df['model'], 
-           y=round(uncensored_grouped_df['value']['mean'], 2), 
-           error_y={"array":np.round(uncensored_grouped_df['value']['std'],2)})
-])
-# Change the bar mode
-fig.update_layout(barmode='group', 
-                  title_text="R^2 Comparison Across Different Models",
-                  xaxis_title="Model",
-                  yaxis_title=r"$R^2$",
-                  legend_title="Censore Label",
-                  font=dict(
-                      family="Courier New, monospace",
-                      size=18)
-                 )
-fig.update_yaxes(range=(-1.5, 1.0))
-#fig.show()
-fig.write_html("images/r_squared.html")
-
-
-# In[71]:
-
-
-positive_censored_grouped_df = censored_grouped_df[censored_grouped_df['model'] != "MCMC unscaled normal"]
-positive_uncensored_grouped_df = uncensored_grouped_df[uncensored_grouped_df['model'] != "MCMC unscaled normal"]
-
-
-# In[72]:
-
-
-print(positive_censored_grouped_df)
-print(positive_uncensored_grouped_df)
-
-
-# In[73]:
-
-
-import plotly.graph_objects as go
-models = positive_censored_grouped_df['model']
-
-fig = go.Figure(data=[
-    go.Bar(name='Full Dataset', 
-           x=positive_censored_grouped_df['model'], 
-           y=np.round(positive_censored_grouped_df['value']['mean'], 2), 
-           error_y={"array":np.round(positive_censored_grouped_df['value']['std'], 2)}),
-    go.Bar(name='Uncensored Dataset', 
-           x=positive_uncensored_grouped_df['model'], 
-           y=round(positive_uncensored_grouped_df['value']['mean'], 2), 
-           error_y={"array":np.round(positive_uncensored_grouped_df['value']['std'],2)})
-])
-# Change the bar mode
-fig.update_layout(barmode='group', 
-                  title_text="R^2 Comparison Across Different Models",
-                  xaxis_title="Model",
-                  yaxis_title=r"$R^2$",
-                  legend_title="Censore Label",
-                  font=dict(
-                      family="Courier New, monospace",
-                      size=18)
-                 )
-#fig.update_yaxes(range=(-1.5, 1.0))
-#fig.show()
-fig.write_html("images/r_squared2.html")
-
-
-# In[74]:
-
-
-runtime_df = super_results[super_results['measurement'] == "time"]
-grouped_runtime_df = runtime_df.groupby(['model', 'measurement', 'censored']).agg(['mean', 'std']).reset_index()
-grouped_runtime_df = grouped_runtime_df.sort_values(by=('value', 'mean'))
-
-
-# In[75]:
-
-
-import plotly.graph_objects as go
-models = grouped_runtime_df['model']
-
-fig = go.Figure(data=[
-    go.Bar(x=models, 
-           y=np.round(grouped_runtime_df['value']['mean']/60.0, 2), 
-           error_y={"array":np.round(grouped_runtime_df['value']['std']/60.0, 2)})
-])
-# Change the bar mode
-fig.update_layout(barmode='group', 
-                  title_text='Runtime Comparison across Different Models',
-                  xaxis_title="Model",
-                  yaxis_title="Runtime (minutes)",
-                  font=dict(
-                      family="Courier New, monospace",
-                      size=18)
-                 )
-#fig.show()
-fig.write_html("images/runtimes.html")
-
-
-# In[76]:
-
-
-model_num = 5
-super_results.shape[0]//(model_num*3)
-
-
-# In[ ]:
-
-
-
-
